@@ -57,3 +57,28 @@ Run the calculator
 python3 main.py
 ```
 <img src="./asset/sample_output.PNG" width="80%">
+After running the application, the calculations are stored in calculator_history.csv file
+
+```bash
+(venv) pritom@DESKTOP-8L8AR1I:~/midterm_assesment/IS601_midterm_assesment$ cat ./history/calculator_history.csv
+operation,operand1,operand2,result,timestamp
+Percentage,25,1E+2,25.00,2026-03-09T18:10:30.217763
+IntegerDivision,11,3,3,2026-03-09T18:10:48.782246
+```
+Also, the application writes log to a log file 
+
+```bash
+2026-03-09 18:10:15,029 - INFO - Logging initialized at: /home/pritom/midterm_assesment/IS601_midterm_assesment/logs/calculator.log
+2026-03-09 18:10:15,029 - INFO - No history file found - starting with empty history
+2026-03-09 18:10:15,029 - INFO - Calculator initialized with configuration
+2026-03-09 18:10:15,030 - INFO - Added observer: LoggingObserver
+2026-03-09 18:10:15,030 - INFO - Added observer: AutoSaveObserver
+2026-03-09 18:10:22,511 - INFO - No history file found - starting with empty history
+2026-03-09 18:10:30,217 - INFO - Set operation: Percentage
+2026-03-09 18:10:30,217 - INFO - Calculation performed: Percentage (25, 1E+2) = 25.00
+2026-03-09 18:10:32,083 - INFO - History saved successfully to /home/pritom/midterm_assesment/IS601_midterm_assesment/history/calculator_history.csv
+2026-03-09 18:10:48,782 - INFO - Set operation: IntegerDivision
+2026-03-09 18:10:48,782 - INFO - Calculation performed: IntegerDivision (11, 3) = 3
+2026-03-09 18:10:54,357 - INFO - History saved successfully to /home/pritom/midterm_assesment/IS601_midterm_assesment/history/calculator_history.csv
+2026-03-09 18:11:06,228 - INFO - History saved successfully to /home/pritom/midterm_assesment/IS601_midterm_assesment/history/calculator_history.csv
+```
