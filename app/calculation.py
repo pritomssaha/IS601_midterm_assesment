@@ -1,7 +1,7 @@
 ########################
 # Calculation Model    #
 ########################
-
+from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 import datetime
 from decimal import Decimal, InvalidOperation
@@ -9,6 +9,8 @@ import logging
 from typing import Any, Dict
 
 from app.exceptions import OperationError
+from app.exception import _raise_invalid_root, _raise_neg_power, _raise_div_zero
+from app.operation_command import *
 
 
 @dataclass
@@ -23,13 +25,14 @@ class Calculation:
     """
 
     # Required fields
-    operation: str          # The name of the operation (e.g., "Addition")
-    operand1: Decimal       # The first operand in the calculation
-    operand2: Decimal       # The second operand in the calculation
+    operation: str  # The name of the operation (e.g., "Addition")
+    operand1: Decimal  # The first operand in the calculation
+    operand2: Decimal  # The second operand in the calculation
 
     # Fields with default values
     result: Decimal = field(init=False)  # The result of the calculation, computed post-initialization
-    timestamp: datetime.datetime = field(default_factory=datetime.datetime.now)  # Time when the calculation was performed
+    timestamp: datetime.datetime = field(
+        default_factory=datetime.datetime.now)  # Time when the calculation was performed
 
     def __post_init__(self):
         """
@@ -56,16 +59,16 @@ class Calculation:
         """
         # Mapping of operation names to their corresponding functions
         operations = {
-            "Addition": lambda x, y: x + y,
-            "Subtraction": lambda x, y: x - y,
-            "Multiplication": lambda x, y: x * y,
-            "Division": lambda x, y: x / y if y != 0 else self._raise_div_zero(),
-            "Power": lambda x, y: Decimal(pow(float(x), float(y))) if y >= 0 else self._raise_neg_power(),
-            "Root": lambda x, y: (
-                Decimal(pow(float(x), 1 / float(y))) 
-                if x >= 0 and y != 0 
-                else self._raise_invalid_root(x, y)
-            )
+            "Addition": AddCommand(),
+            "Subtraction": SubtractCommand(),
+            "Multiplication": MultiplyCommand(),
+            "Division": DivisionCommand(),
+            "Power": PowerCommand(),
+            "Root": RootCommand(),
+            "Modulus": ModulusCommand(),
+            "IntegerDivision": IntegerDivisionCommand(),
+            "Percentage": PercentageCommand(),
+            "AbsoluteDifference": AbsoluteDifferenceCommand()
         }
 
         # Retrieve the operation function based on the operation name
@@ -75,46 +78,11 @@ class Calculation:
 
         try:
             # Execute the operation with the provided operands
-            return op(self.operand1, self.operand2)
+            # return op(self.operand1, self.operand2)
+            return op.execute(self.operand1, self.operand2)
         except (InvalidOperation, ValueError, ArithmeticError) as e:
             # Handle any errors that occur during calculation
             raise OperationError(f"Calculation failed: {str(e)}")
-
-    @staticmethod
-    def _raise_div_zero():  # pragma: no cover
-        """
-        Helper method to raise division by zero error.
-
-        This method is called when a division by zero is attempted.
-        """
-        raise OperationError("Division by zero is not allowed")
-
-    @staticmethod
-    def _raise_neg_power():  # pragma: no cover
-        """
-        Helper method to raise negative power error.
-
-        This method is called when a negative exponent is used in a power operation.
-        """
-        raise OperationError("Negative exponents are not supported")
-
-    @staticmethod
-    def _raise_invalid_root(x: Decimal, y: Decimal):  # pragma: no cover
-        """
-        Helper method to raise invalid root error.
-
-        This method is called when an invalid root operation is attempted, such as
-        taking the root of a negative number or using zero as the root degree.
-
-        Args:
-            x (Decimal): The number from which the root is taken.
-            y (Decimal): The degree of the root.
-        """
-        if y == 0:
-            raise OperationError("Zero root is undefined")
-        if x < 0:
-            raise OperationError("Cannot calculate root of negative number")
-        raise OperationError("Invalid root operation")
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -221,10 +189,10 @@ class Calculation:
         if not isinstance(other, Calculation):
             return NotImplemented
         return (
-            self.operation == other.operation and
-            self.operand1 == other.operand1 and
-            self.operand2 == other.operand2 and
-            self.result == other.result
+                self.operation == other.operation and
+                self.operand1 == other.operand1 and
+                self.operand2 == other.operand2 and
+                self.result == other.result
         )
 
     def format_result(self, precision: int = 10) -> str:
