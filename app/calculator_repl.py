@@ -5,10 +5,13 @@
 from decimal import Decimal
 import logging
 
+import colorama
 from app.calculator import Calculator
 from app.exceptions import OperationError, ValidationError
 from app.history import AutoSaveObserver, LoggingObserver
 from app.operations import OperationFactory
+
+from colorama import Fore
 
 
 def calculator_repl():
@@ -21,6 +24,7 @@ def calculator_repl():
     try:
         # Initialize the Calculator instance
         calc = Calculator()
+        colorama.init(autoreset=True)
 
         # Register observers for logging and auto-saving history
         calc.add_observer(LoggingObserver())
@@ -35,24 +39,24 @@ def calculator_repl():
 
                 if command == 'help':
                     # Display available commands
-                    print("\nAvailable commands:")
-                    print("  add, subtract, multiply, divide, power, root - Perform calculations")
-                    print("  history - Show calculation history")
-                    print("  clear - Clear calculation history")
-                    print("  undo - Undo the last calculation")
-                    print("  redo - Redo the last undone calculation")
-                    print("  save - Save calculation history to file")
-                    print("  load - Load calculation history from file")
-                    print("  exit - Exit the calculator")
+                    print(Fore.GREEN + "\nAvailable commands:")
+                    print(Fore.GREEN + "  add, subtract, multiply, divide, power, root, modulus, integer_division, percent, abs_diff - Perform calculations")
+                    print(Fore.GREEN + "  history - Show calculation history")
+                    print(Fore.GREEN + "  clear - Clear calculation history")
+                    print(Fore.GREEN + "  undo - Undo the last calculation")
+                    print(Fore.GREEN + "  redo - Redo the last undone calculation")
+                    print(Fore.GREEN + "  save - Save calculation history to file")
+                    print(Fore.GREEN + "  load - Load calculation history from file")
+                    print(Fore.GREEN + "  exit - Exit the calculator")
                     continue
 
                 if command == 'exit':
                     # Attempt to save history before exiting
                     try:
                         calc.save_history()
-                        print("History saved successfully.")
+                        print(Fore.GREEN + "History saved successfully.")
                     except Exception as e:
-                        print(f"Warning: Could not save history: {e}")
+                        print(Fore.RED + f"Warning: Could not save history: {e}")
                     print("Goodbye!")
                     break
 
@@ -60,54 +64,55 @@ def calculator_repl():
                     # Display calculation history
                     history = calc.show_history()
                     if not history:
-                        print("No calculations in history")
+                        print(Fore.RED + "No calculations in history")
                     else:
                         print("\nCalculation History:")
                         for i, entry in enumerate(history, 1):
-                            print(f"{i}. {entry}")
+                            print( Fore.LIGHTGREEN_EX + f"{i}. {entry}")
                     continue
 
                 if command == 'clear':
                     # Clear calculation history
                     calc.clear_history()
-                    print("History cleared")
+                    print(Fore.GREEN + "History cleared")
                     continue
 
                 if command == 'undo':
                     # Undo the last calculation
                     if calc.undo():
-                        print("Operation undone")
+                        print(Fore.CYAN + "Operation undone")
                     else:
-                        print("Nothing to undo")
+                        print(Fore.RED + "Nothing to undo")
                     continue
 
                 if command == 'redo':
                     # Redo the last undone calculation
                     if calc.redo():
-                        print("Operation redone")
+                        print(Fore.CYAN + "Operation redone")
                     else:
-                        print("Nothing to redo")
+                        print(Fore.RED + "Nothing to redo")
                     continue
 
                 if command == 'save':
                     # Save calculation history to file
                     try:
                         calc.save_history()
-                        print("History saved successfully")
+                        print(Fore.GREEN + "History saved successfully")
                     except Exception as e:
-                        print(f"Error saving history: {e}")
+                        print(Fore.RED + f"Error saving history: {e}")
                     continue
 
                 if command == 'load':
                     # Load calculation history from file
                     try:
                         calc.load_history()
-                        print("History loaded successfully")
+                        print(Fore.GREEN + "History loaded successfully")
                     except Exception as e:
-                        print(f"Error loading history: {e}")
+                        print(Fore.RED + f"Error loading history: {e}")
                     continue
 
-                if command in ['add', 'subtract', 'multiply', 'divide', 'power', 'root']:
+                if command in ['add', 'subtract', 'multiply', 'divide', 'power', 'root', 'modulus', 'integer_division',
+                               'percent', 'abs_diff']:
                     # Perform the specified arithmetic operation
                     try:
                         print("\nEnter numbers (or 'cancel' to abort):")
@@ -129,7 +134,7 @@ def calculator_repl():
 
                         # Normalize the result if it's a Decimal
                         if isinstance(result, Decimal):
-                            result = result.normalize()
+                            result = result.normalize().quantize(Decimal("0.01"))
 
                         print(f"\nResult: {result}")
                     except (ValidationError, OperationError) as e:
