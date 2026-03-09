@@ -56,3 +56,4 @@ Run the calculator
 ```bash
 python3 main.py
 ```
+<img src="./asset/sample_output.PNG" width="80%">
